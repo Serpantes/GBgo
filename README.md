@@ -1,2 +1,2 @@
 # GBgo
- GeekBrainsGoCourse
+ GeekBrainsGoCourse init file
