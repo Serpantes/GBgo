@@ -16,18 +16,39 @@ func round(a float64) float64 { //Округление до копеек. Исп
 	return af / 100
 }
 
+func conv(rSum float64) float64 {
+	return rSum / dol
+}
+func gip(katO float64, katT float64) float64 {
+	return math.Sqrt(math.Pow(katO, 2) + math.Pow(katT, 2)) //Теорема Пифагора с Math
+}
+func perim(katO float64, katT float64) float64 { //Периметр
+	return katO + katT + gip(katO, katT)
+}
+func area(katO float64, katT float64) float64 { //Площадь
+	return (katO * katT) / 2
+}
+func bank(rsum float64, proc float64) float64 {
+
+	yrs := 5 //Количество лет.
+	for i := 0; i < yrs; i++ {
+		incr := rsum * proc / 100 //Увеличение за текущий год
+		rsum = rsum + incr
+	}
+	return rsum
+}
 func main() {
 
 	//Выбор программы
-Start:
-	fmt.Println("Введите 1 - Конвертор \nВведите 2 - Треугольник \nВведите 3 - Вклад")
-	fmt.Scanln(&choice)
-
+	for choice < 1 || choice > 3 {
+		fmt.Println("Введите 1 - Конвертор \nВведите 2 - Треугольник \nВведите 3 - Вклад")
+		fmt.Scanln(&choice)
+	}
 	if choice == 1 { // Конвертация рублей в доллары
 		var rub float64
 		fmt.Println("Введите сумму в Рублях")
 		fmt.Scanln(&rub)
-		fmt.Printf("У вас %.2f$\n", rub/dol)
+		fmt.Printf("У вас %.2f$\n", conv(rub)) //Не совсем понимаю где тут использовать функцию. Весь ввод-вывод в неё убрать?
 	}
 	if choice == 2 { //Вычисление прямоугольного треугольника
 		var katOne, katTwo float64
@@ -35,13 +56,9 @@ Start:
 		fmt.Scanln(&katOne)
 		fmt.Print("Введите длинну второго катета: ")
 		fmt.Scanln(&katTwo)
-		gip := math.Sqrt(math.Pow(katOne, 2) + math.Pow(katTwo, 2)) //Теорема Пифагора с Math
-		perim := katOne + katTwo + gip
-		area := (katOne * katTwo) / 2
-		fmt.Printf("Длинна гипотенузы %.2f.\n", gip)
-		fmt.Printf("Длинна периметра: %.2f.\n", perim)
-		fmt.Printf("Площадь треугольника: %.2f.\n", area)
-
+		fmt.Printf("Длинна гипотенузы %.2f.\n", gip(katOne, katTwo))
+		fmt.Printf("Периметр треугольника %.2f.\n", perim(katOne, katTwo))
+		fmt.Printf("Площаь треугольника %.2f.\n", area(katOne, katTwo))
 	}
 	if choice == 3 { //Вклад
 		var sum, proc float64
@@ -49,16 +66,6 @@ Start:
 		fmt.Scanln(&sum)
 		fmt.Println("Введите годовой процент:")
 		fmt.Scanln(&proc)
-		yrs := 5 //Количество лет.
-		for i := 0; i < yrs; i++ {
-			incr := sum * proc / 100 //Увеличение за текущий год
-			sum = sum + incr
-		}
-		fmt.Printf("Сумма вашего вклада через 5 лет составит %.2f.\n", sum)
+		fmt.Printf("Сумма вашего вклада через 5 лет составит %.2f.\n", bank(sum, proc))
 	}
-	if choice != 1 && choice != 2 && choice != 3 {
-		println("Введите число от 1 до 3")
-		goto Start
-	}
-
 }
