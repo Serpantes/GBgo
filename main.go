@@ -2,70 +2,98 @@ package main
 
 import (
 	"fmt"
-	"math"
+	"math/big"
 )
 
-var choice int
+var prime [99]int
+var ns [540][2]int
 
-const dol = 63.33
-
-func round(a float64) float64 { //Округление до копеек. Использовал, пока не разобрался с Printf
-	a = a * 100
-	ai := int(a)
-	af := float64(ai)
-	return af / 100
-}
-
-func conv(rSum float64) float64 {
-	return rSum / dol
-}
-func gip(katO float64, katT float64) float64 {
-	return math.Sqrt(math.Pow(katO, 2) + math.Pow(katT, 2)) //Теорема Пифагора с Math
-}
-func perim(katO float64, katT float64) float64 { //Периметр
-	return katO + katT + gip(katO, katT)
-}
-func area(katO float64, katT float64) float64 { //Площадь
-	return (katO * katT) / 2
-}
-func bank(rsum float64, proc float64) float64 {
-
-	yrs := 5 //Количество лет.
-	for i := 0; i < yrs; i++ {
-		incr := rsum * proc / 100 //Увеличение за текущий год
-		rsum = rsum + incr
+func fillNumb() { //a
+	for i := 0; i < len(ns); i++ {
+		ns[i][0] = i + 2
 	}
-	return rsum
+	for i := 0; i < len(ns); i++ {
+		ns[i][1] = 0
+	}
 }
-func main() {
 
-	//Выбор программы
-	for choice < 1 || choice > 3 {
-		fmt.Println("Введите 1 - Конвертор \nВведите 2 - Треугольник \nВведите 3 - Вклад")
+func mark() {
+	p := 2                                  //b
+	for marks := 0; marks <= 100; marks++ { //e
+		for p2 := p * p; p2 <= len(ns); p2 = p2 + p {
+			ns[p2-2][1] = 1 //c
+		}
+		for i := 0; i <= 539; i++ {
+			if ns[i][1] == 0 && ns[i][0] > p {
+				p = ns[i][0] //d
+				break
+			}
+		}
+	}
+}
+func fillPrime() { //4*
+	mark()
+	i := 0
+	count := 0
+	for count < len(prime) {
+		if ns[i][1] == 0 {
+			prime[count] = ns[i][0]
+			count++
+		}
+		i++
+	}
+}
+func chet(a int) bool {
+	if a%2 == 0 {
+		return true
+	}
+	return false
+}
+func chetT(a int) bool {
+	if a%3 == 0 {
+		return true
+	}
+	return false
+}
+func fibPrint(n int) {
+	for i := 0; i < n; i++ {
+		fmt.Println(fibN(i))
+	}
+}
+func fibN(n int) *big.Int {
+	if n < 0 {
+		panic("fib n cant be negative")
+	}
+	a, _ := fib(n)
+	return a
+}
+
+func fib(n int) (*big.Int, *big.Int) {
+	if n == 0 {
+		return big.NewInt(0), big.NewInt(1)
+	}
+	a, b := fib(n / 2)
+	c := big.NewInt(0).Mul(a, (big.NewInt(0).Sub(big.NewInt(0).Mul(b, big.NewInt(2)), a)))
+	d := big.NewInt(0).Add(big.NewInt(0).Mul(a, a), big.NewInt(0).Mul(b, b))
+	if n%2 == 0 {
+		return c, d
+	} else {
+		return d, big.NewInt(0).Add(c, d)
+	}
+}
+
+func main() {
+	var choice int
+	for choice < 1 || choice > 2 {
+		fmt.Printf("1 - fib\n2 - mass\n")
 		fmt.Scanln(&choice)
 	}
-	if choice == 1 { // Конвертация рублей в доллары
-		var rub float64
-		fmt.Println("Введите сумму в Рублях")
-		fmt.Scanln(&rub)
-		fmt.Printf("У вас %.2f$\n", conv(rub)) //Не совсем понимаю где тут использовать функцию. Весь ввод-вывод в неё убрать?
-	}
-	if choice == 2 { //Вычисление прямоугольного треугольника
-		var katOne, katTwo float64
-		fmt.Print("Введите длинну первого катета: ")
-		fmt.Scanln(&katOne)
-		fmt.Print("Введите длинну второго катета: ")
-		fmt.Scanln(&katTwo)
-		fmt.Printf("Длинна гипотенузы %.2f.\n", gip(katOne, katTwo))
-		fmt.Printf("Периметр треугольника %.2f.\n", perim(katOne, katTwo))
-		fmt.Printf("Площаь треугольника %.2f.\n", area(katOne, katTwo))
-	}
-	if choice == 3 { //Вклад
-		var sum, proc float64
-		fmt.Println("Введите сумму вклада:")
-		fmt.Scanln(&sum)
-		fmt.Println("Введите годовой процент:")
-		fmt.Scanln(&proc)
-		fmt.Printf("Сумма вашего вклада через 5 лет составит %.2f.\n", bank(sum, proc))
+	switch choice {
+	case 1:
+		fibPrint(100)
+	case 2:
+		fillNumb()
+		fillPrime()
+		fmt.Print(prime, "\n")
 	}
 }
