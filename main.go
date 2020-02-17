@@ -17,9 +17,9 @@ func fillNumb() { //a
 	}
 }
 
-func mark() {
-	p := 2                                  //b
-	for marks := 0; marks <= 100; marks++ { //e
+func mark(n int) {
+	p := 2                                //b
+	for marks := 0; marks <= n; marks++ { //e
 		for p2 := p * p; p2 <= len(ns); p2 = p2 + p {
 			ns[p2-2][1] = 1 //c
 		}
@@ -32,7 +32,7 @@ func mark() {
 	}
 }
 func fillPrime() { //4*
-	mark()
+	mark(100)
 	i := 0
 	count := 0
 	for count < len(prime) {
@@ -57,30 +57,40 @@ func chetT(a int) bool {
 }
 func fibPrint(n int) {
 	for i := 0; i < n; i++ {
-		fmt.Println(fibN(i))
+		fmt.Println(fib(i))
 	}
 }
-func fibN(n int) *big.Int {
+
+/*func fibN(n int) *big.Int {
 	if n < 0 {
 		panic("fib n cant be negative")
 	}
 	a, _ := fib(n)
 	return a
+}*/
+
+func fib(n int) *big.Int { //new fib func
+	a := big.NewInt(1)
+	b := big.NewInt(1)
+	for i := 0; i < n; i++ {
+		a, b = b, big.NewInt(0).Add(a, b)
+	}
+	return a
 }
 
-func fib(n int) (*big.Int, *big.Int) {
+/*func fib(n int) (*big.Int, *big.Int) {
 	if n == 0 {
 		return big.NewInt(0), big.NewInt(1)
 	}
 	a, b := fib(n / 2)
-	c := big.NewInt(0).Mul(a, (big.NewInt(0).Sub(big.NewInt(0).Mul(b, big.NewInt(2)), a)))
+	c := big.NewInt(0).Mul(a, (big.NewInt(0).Sub(big.NewInt(0).Mul(b, big.NewInt(2)), a))) // a * ((b * 2) - a)
 	d := big.NewInt(0).Add(big.NewInt(0).Mul(a, a), big.NewInt(0).Mul(b, b))
 	if n%2 == 0 {
 		return c, d
 	} else {
 		return d, big.NewInt(0).Add(c, d)
 	}
-}
+}*/
 
 func main() {
 	var choice int
