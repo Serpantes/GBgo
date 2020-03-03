@@ -1,183 +1,77 @@
 package main
 
 import (
+	"encoding/csv"
+	"flag"
 	"fmt"
-
-	calculator "./pkg"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
 )
 
-//1
-type iStruct interface {
-	printStruct()
-}
-type myStruct struct {
-	stuff     int
-	moreStuff int
-}
-type anotherMyStruct struct {
-	stuff        int
-	moreStuff    int
-	anotherStuff int
-}
-
-func (s myStruct) printStruct() {
-	fmt.Println("stuff=", s.stuff)
-	fmt.Println("moreStuff=", s.moreStuff)
-}
-func (s anotherMyStruct) printStruct() {
-	fmt.Println("stuff=", s.stuff)
-	fmt.Println("moreStuff=", s.moreStuff)
-	fmt.Println("anotherStuff=", s.anotherStuff)
-}
-func doStuff(s iStruct) {
-	s.printStruct()
-}
-
-//2
-
-type person struct {
-	name  string
-	phone int
-}
-type phoneBook []person
-
-func (a phoneBook) Len() int           { return len(a) }
-func (a phoneBook) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a phoneBook) Less(i, j int) bool { return a[i].name < a[j].name }
-
-//4
-var coord = map[int]string{
-	1: "a",
-	2: "b",
-	3: "c",
-	4: "d",
-	5: "e",
-	6: "f",
-	7: "g",
-	8: "h",
-}
-
-type point struct {
-	x int
-	y int
-}
-
-func (p *point) getX() int {
-	return p.x
-}
-func (p *point) getY() int {
-	return p.y
-}
-
-func (p point) string() string {
-	return fmt.Sprintf("%s%d", coord[p.x], p.y)
-}
-func newPoint(x, y int) point {
-	return point{
-		x: x,
-		y: y,
-	}
-}
-
-var availableMoves = []point{
-	newPoint(1, 2),
-	newPoint(-1, 2),
-	newPoint(2, 1),
-	newPoint(-2, 1),
-	newPoint(1, -2),
-	newPoint(-1, -2),
-	newPoint(-2, -1),
-	newPoint(2, -1),
-}
-
-type fig struct {
-	position point
-}
-
-func (k *fig) getPos() *point {
-	return &k.position
-}
-
-func (k *fig) calcAvail() []point {
-	res := make([]point, 0, 4)
-	for _, v := range availableMoves {
-		newX := k.getPos().getX() + v.getX()
-		newY := k.getPos().getY() + v.getY()
-		if isAvail(newX, newY) {
-			res = append(res, newPoint(newX, newY))
-		}
-	}
-
-	return res
-}
-
-func isAvail(x, y int) bool {
-	return x >= 1 && x <= 8 && y >= 1 && y <= 8
-}
-
-func newFig(x, y int) fig {
-	return fig{
-		position: point{
-			x: x,
-			y: y,
-		},
-	}
-}
+var src = flag.String("from", "", "From")
+var dst = flag.String("to", "", "To")
+var file = flag.String("file", "", "File")
+var myGrep = flag.String("mygrep", "", "Mygrep")
 
 func main() {
-	{ //1
-		mStr := &myStruct{
-			stuff:     4,
-			moreStuff: 42,
-		}
-		anotherMStr := &anotherMyStruct{
-			stuff:     4,
-			moreStuff: 42,
-		}
-		doStuff(mStr)
-		doStuff(anotherMStr)
+	choice := 0
+	for choice < 1 || choice > 4 {
+		fmt.Scanln(&choice)
 	}
-	{ //2
-		var pBook phoneBook
-		pBook = append(pBook, person{
-			name:  "Vasya",
-			phone: 89999843177,
-		})
-		pBook = append(pBook, person{
-			name:  "Kolya",
-			phone: 89171234365,
-		})
-		pBook = append(pBook, person{
-			name:  "Nikita",
-			phone: 89255423145,
-		})
-	}
-	{ //3
-		calcHelp := "Spravka, ToDo" //2bDone
-		input := ""
-		for {
-			fmt.Print("> ")
-			if _, err := fmt.Scanln(&input); err != nil {
-				fmt.Println(err)
-				continue
+	switch choice {
+	case 1:
+		{ //file reader
+			bs, err := ioutil.ReadFile("filereadshort.go")
+			if err != nil {
+				fmt.Println(err) //стоит добавить вывод ошибки в консоль.
+				return
 			}
-			if input == "help" {
-				fmt.Println(calcHelp)
-				continue
-			}
-			if input == "exit" {
-				break
-			}
+			fmt.Println(string(bs))
+		}
+	case 2:
+		{ //csv encoding
+			in := `name,Sname,age
+	Vasya,Lojkin,12
+	Lojka,Vasin,21
+	Harry,Potter,31`
+			r := csv.NewReader(strings.NewReader(in))
 
-			if res, err := calculator.Calculate(input); err == nil {
-				fmt.Printf("Результат: %v\n", res)
-			} else {
-				fmt.Println("Не удалось произвести вычисление")
+			for {
+				record, err := r.Read()
+				if err != nil {
+					fmt.Println(err)
+					break
+				}
+				fmt.Println(record)
 			}
 		}
-	}
-	{ //4
-		f := newFig(2, 4)
-		fmt.Println(f.calcAvail())
+	case 3:
+		{ // file copy
+			flag.Parse()
+
+			f1, errR := os.OpenFile(*src, os.O_RDONLY, 0644)
+			if errR != nil {
+				fmt.Println("READ:", errR)
+			}
+			f2, errWr := os.OpenFile(*dst, os.O_WRONLY, 0644)
+			if errR != nil {
+				fmt.Println(errWr)
+			}
+			io.Copy(f2, f1)
+		}
+	case 4:
+		{ //goGrep
+			flag.Parse()
+
+			content, err := ioutil.ReadFile(*file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fileText := string(content)
+			fmt.Println(strings.Contains(fileText, *myGrep))
+		}
 	}
 }
