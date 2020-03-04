@@ -1,77 +1,54 @@
 package main
 
 import (
-	"encoding/csv"
-	"flag"
 	"fmt"
+	"image"
+	"image/color"
+	"image/draw"
+	"image/png"
 	"io"
-	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
-	"strings"
 )
 
-var src = flag.String("from", "", "From")
-var dst = flag.String("to", "", "To")
-var file = flag.String("file", "", "File")
-var myGrep = flag.String("mygrep", "", "Mygrep")
+func hello(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "text/html")
+
+	io.WriteString(res,
+		req.URL.Query().Get("name"))
+}
 
 func main() {
 	choice := 0
-	for choice < 1 || choice > 4 {
+	for choice > 2 || choice < 1 {
 		fmt.Scanln(&choice)
 	}
 	switch choice {
 	case 1:
-		{ //file reader
-			bs, err := ioutil.ReadFile("filereadshort.go")
-			if err != nil {
-				fmt.Println(err) //стоит добавить вывод ошибки в консоль.
-				return
-			}
-			fmt.Println(string(bs))
-		}
+		fs := http.FileServer(http.Dir("static"))
+		http.Handle("/", fs)
+		http.HandleFunc("/hello", hello)
+		http.ListenAndServe(":80", nil)
 	case 2:
-		{ //csv encoding
-			in := `name,Sname,age
-	Vasya,Lojkin,12
-	Lojka,Vasin,21
-	Harry,Potter,31`
-			r := csv.NewReader(strings.NewReader(in))
-
-			for {
-				record, err := r.Read()
-				if err != nil {
-					fmt.Println(err)
-					break
+		black := color.RGBA{0, 0, 0, 255}
+		white := color.RGBA{255, 255, 255, 255}
+		size := 8
+		rectImg := image.NewRGBA(image.Rect(0, 0, size, size))
+		draw.Draw(rectImg, rectImg.Bounds(), &image.Uniform{black}, image.ZP, draw.Src)
+		for x := 0; x <= size; x++ {
+			for y := 0; y < size; y++ {
+				if (x+y)%2 == 0 {
+					rectImg.Set(x, y, white)
 				}
-				fmt.Println(record)
 			}
 		}
-	case 3:
-		{ // file copy
-			flag.Parse()
 
-			f1, errR := os.OpenFile(*src, os.O_RDONLY, 0644)
-			if errR != nil {
-				fmt.Println("READ:", errR)
-			}
-			f2, errWr := os.OpenFile(*dst, os.O_WRONLY, 0644)
-			if errR != nil {
-				fmt.Println(errWr)
-			}
-			io.Copy(f2, f1)
+		file, err := os.Create("pic.png")
+		if err != nil {
+			log.Fatalf("Failed create file: %s", err)
 		}
-	case 4:
-		{ //goGrep
-			flag.Parse()
-
-			content, err := ioutil.ReadFile(*file)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fileText := string(content)
-			fmt.Println(strings.Contains(fileText, *myGrep))
-		}
+		defer file.Close()
+		png.Encode(file, rectImg)
 	}
 }
